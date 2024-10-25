@@ -1,0 +1,12 @@
+---
+title: OR in Julia
+authors:
+  - name: Christian Barz
+bibliography: references.bib
+format:
+  html:
+    code-fold: true
+jupyter: julia-1.11
+---
+
+TBA (write a nice introduction)
