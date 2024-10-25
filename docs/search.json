@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "OR in Julia",
     "section": "",
-    "text": "TBA (write a nice introduction)"
+    "text": "In this serie we are going to solve some typical problems from operations research, mathematical optimization and modeling in Julia.\n** Please remark that it is currently work in progress**"
   },
   {
     "objectID": "01_test_installation.html",

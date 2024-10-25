@@ -8,7 +8,7 @@ book:
   navbar:
     right:
       - icon: github
-        href: https://github.com/
+        href: https://github.com/barz-christian/OR_in_Julia
   chapters:
     - index.qmd
     - 01_test_installation.ipynb

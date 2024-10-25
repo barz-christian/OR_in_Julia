@@ -9,4 +9,8 @@ format:
 jupyter: julia-1.11
 ---
 
-TBA (write a nice introduction)
+According to [wikipedia](https://en.wikipedia.org/wiki/Julia_(programming_language)): *Julia is a high-level, general-purpose dynamic programming language, still designed to be fast and productive, for e.g. data science, artificial intelligence, machine learning, modeling and simulation, most commonly used for numerical analysis and computational science.*
+
+In this serie we are going to solve some typical problems from operations research, mathematical optimization and modeling in Julia.
+
+** Please remark that it is currently work in progress**
