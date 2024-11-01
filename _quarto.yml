@@ -11,8 +11,10 @@ book:
         href: https://github.com/barz-christian/OR_in_Julia
   chapters:
     - index.qmd
-    - 01_test_installation.ipynb
-    - 02_milp_cflp.ipynb
+    - setup_and_test.ipynb
+    - milp/01_milp_cflp.ipynb
+    - sa/02_sa_cflp.ipynb
+    - sa/03_sa_cflp_with_heuristics.ipynb
     - references.qmd
 
 bibliography: references.bib

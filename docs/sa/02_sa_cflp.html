@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>OR in Julia - 4&nbsp; Capacitated Facility Location Problem solved by Simulated Annealing</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../sa/03_sa_cflp_with_heuristics.html" rel="next">
+<link href="../milp/01_milp_cflp.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">OR in Julia</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/barz-christian/OR_in_Julia"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Capacitated Facility Location Problem solved by Simulated Annealing</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">OR in Julia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../setup_and_test.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Julia setup</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../milp/01_milp_cflp.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Capacitated facility location problem solved by custom branching and selection rules</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../sa/02_sa_cflp.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Capacitated Facility Location Problem solved by Simulated Annealing</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../sa/03_sa_cflp_with_heuristics.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Facility Location Problem solved by Simulated Annealing and heuristics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#problem-statement" id="toc-problem-statement" class="nav-link active" data-scroll-target="#problem-statement"> <span class="header-section-number">4.1</span> Problem statement</a></li>
+  <li><a href="#mathematical-model-formulation" id="toc-mathematical-model-formulation" class="nav-link" data-scroll-target="#mathematical-model-formulation"> <span class="header-section-number">4.2</span> Mathematical model formulation</a>
+  <ul class="collapse">
+  <li><a href="#sets" id="toc-sets" class="nav-link" data-scroll-target="#sets"> <span class="header-section-number">4.2.1</span> Sets</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters"> <span class="header-section-number">4.2.2</span> Parameters</a></li>
+  <li><a href="#decision-variables" id="toc-decision-variables" class="nav-link" data-scroll-target="#decision-variables"> <span class="header-section-number">4.2.3</span> Decision variables</a></li>
+  <li><a href="#objective" id="toc-objective" class="nav-link" data-scroll-target="#objective"> <span class="header-section-number">4.2.4</span> Objective</a></li>
+  <li><a href="#constraints" id="toc-constraints" class="nav-link" data-scroll-target="#constraints"> <span class="header-section-number">4.2.5</span> Constraints</a></li>
+  <li><a href="#problem-formulation-as-a-mixed-interger-linear-programm" id="toc-problem-formulation-as-a-mixed-interger-linear-programm" class="nav-link" data-scroll-target="#problem-formulation-as-a-mixed-interger-linear-programm"> <span class="header-section-number">4.2.6</span> Problem formulation as a Mixed Interger Linear Programm</a></li>
+  </ul></li>
+  <li><a href="#implementation" id="toc-implementation" class="nav-link" data-scroll-target="#implementation"> <span class="header-section-number">4.3</span> Implementation</a></li>
+  <li><a href="#cflp-data-structure" id="toc-cflp-data-structure" class="nav-link" data-scroll-target="#cflp-data-structure"> <span class="header-section-number">4.4</span> CFLP data structure</a></li>
+  <li><a href="#io-and-tests-functions" id="toc-io-and-tests-functions" class="nav-link" data-scroll-target="#io-and-tests-functions"> <span class="header-section-number">4.5</span> I/O and tests functions</a></li>
+  <li><a href="#additional-functions" id="toc-additional-functions" class="nav-link" data-scroll-target="#additional-functions"> <span class="header-section-number">4.6</span> Additional functions</a></li>
+  <li><a href="#combined-simmulated-annealing-implementation" id="toc-combined-simmulated-annealing-implementation" class="nav-link" data-scroll-target="#combined-simmulated-annealing-implementation"> <span class="header-section-number">4.7</span> Combined simmulated annealing implementation</a>
+  <ul class="collapse">
+  <li><a href="#outer-layer-algorithm---open-facility-decision" id="toc-outer-layer-algorithm---open-facility-decision" class="nav-link" data-scroll-target="#outer-layer-algorithm---open-facility-decision"> <span class="header-section-number">4.7.1</span> Outer layer algorithm - open facility decision</a></li>
+  <li><a href="#inner-layer-algorithm---client-to-facility-assignment" id="toc-inner-layer-algorithm---client-to-facility-assignment" class="nav-link" data-scroll-target="#inner-layer-algorithm---client-to-facility-assignment"> <span class="header-section-number">4.7.2</span> Inner layer algorithm - client to facility assignment</a></li>
+  </ul></li>
+  <li><a href="#solve-examples" id="toc-solve-examples" class="nav-link" data-scroll-target="#solve-examples"> <span class="header-section-number">4.8</span> Solve examples</a>
+  <ul class="collapse">
+  <li><a href="#a-simple-cflp" id="toc-a-simple-cflp" class="nav-link" data-scroll-target="#a-simple-cflp"> <span class="header-section-number">4.8.1</span> A simple CFLP</a></li>
+  <li><a href="#example-2" id="toc-example-2" class="nav-link" data-scroll-target="#example-2"> <span class="header-section-number">4.8.2</span> Example 2</a></li>
+  <li><a href="#example-3" id="toc-example-3" class="nav-link" data-scroll-target="#example-3"> <span class="header-section-number">4.8.3</span> Example 3</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Capacitated Facility Location Problem solved by Simulated Annealing</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>We show how to solve a capacitated facility location problem (CFLP) in Julia using <a href="https://en.wikipedia.org/wiki/Simulated_annealing">Simulated Annealing</a>, which is a metaheuristic to approximate the global optimum in a large search space for an optimization problem.</p>
+<p>Here we used a so called combined simmulated annealing <span class="citation" data-cites="qin2012combined">(<a href="../references.html#ref-qin2012combined" role="doc-biblioref">Qin, Ni, and Shi 2012</a>)</span>, which we explain briefly later.</p>
+<section id="problem-statement" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="problem-statement"><span class="header-section-number">4.1</span> Problem statement</h2>
+<p>A company must select a subset of potential facility locations to minimize total cost associated with opening facilities and servicing customers. Each costumer has a specific demand and each facility has a fixed opening costs, a specific capacity and service costs based on the distance to customers. Moreover we do not want to open more than we certain number of facilities.</p>
+</section>
+<section id="mathematical-model-formulation" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="mathematical-model-formulation"><span class="header-section-number">4.2</span> Mathematical model formulation</h2>
+<p>In order to have a more mathematical problem description we give a formulation as a mixed interger problem next:</p>
+<section id="sets" class="level3" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="sets"><span class="header-section-number">4.2.1</span> Sets</h3>
+<ul>
+<li><span class="math inline">\(J=\{1,\ldots,m\}\)</span> set of potential facilities</li>
+<li><span class="math inline">\(C=\{1,\ldots,n\}\)</span> set of customers</li>
+</ul>
+</section>
+<section id="parameters" class="level3" data-number="4.2.2">
+<h3 data-number="4.2.2" class="anchored" data-anchor-id="parameters"><span class="header-section-number">4.2.2</span> Parameters</h3>
+<ul>
+<li><span class="math inline">\(c^f_j\in\mathbb{R}⁺\)</span> fix opening cost of facility <span class="math inline">\(j\)</span></li>
+<li><span class="math inline">\(q_j\in\mathbb{N}^+\)</span> capacity of facility <span class="math inline">\(j\)</span></li>
+<li><span class="math inline">\(d_i\in\mathbb{N}^+\)</span> demand of customer <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\(c^v_{i,j}\in\mathbb{R}^+\)</span> servicing costs from facility <span class="math inline">\(j\)</span> to customer <span class="math inline">\(i\)</span></li>
+</ul>
+</section>
+<section id="decision-variables" class="level3" data-number="4.2.3">
+<h3 data-number="4.2.3" class="anchored" data-anchor-id="decision-variables"><span class="header-section-number">4.2.3</span> Decision variables</h3>
+<ul>
+<li><span class="math inline">\(x_{ij}\)</span>, real, demand of customer <span class="math inline">\(i\)</span> served by facility <span class="math inline">\(j\)</span></li>
+<li><span class="math inline">\(y_j\)</span>, binary, 1 if and only if facility <span class="math inline">\(j\)</span> is open</li>
+</ul>
+</section>
+<section id="objective" class="level3" data-number="4.2.4">
+<h3 data-number="4.2.4" class="anchored" data-anchor-id="objective"><span class="header-section-number">4.2.4</span> Objective</h3>
+<p><span class="math display">\[
+\min \sum_j c^f_j \cdot y_j + \sum_{ij} c_{ij}x_{ij}
+\]</span></p>
+</section>
+<section id="constraints" class="level3" data-number="4.2.5">
+<h3 data-number="4.2.5" class="anchored" data-anchor-id="constraints"><span class="header-section-number">4.2.5</span> Constraints</h3>
+<ul>
+<li>(c1) Each client’s demand is served:</li>
+</ul>
+<p><span class="math display">\[
+\sum_j x_{ij} = d_i, \; \forall i \in C
+\]</span></p>
+<ul>
+<li>(c2) A facility can serve a client only if its open:</li>
+</ul>
+<p><span class="math display">\[
+x_{ij} \leq d_i y_j, \forall i\in C, \forall j \in J
+\]</span></p>
+<ul>
+<li>(c3) A facility can not provide more than its capacity</li>
+</ul>
+<p><span class="math display">\[
+\sum_i x_{ij} \leq q_j y_j, \forall j \in J
+\]</span></p>
+<ul>
+<li>(c4) There is maximal number of facilities allowed to be opened</li>
+</ul>
+<p><span class="math display">\[
+\sum_j y_j \leq k,
+\]</span></p>
+</section>
+<section id="problem-formulation-as-a-mixed-interger-linear-programm" class="level3" data-number="4.2.6">
+<h3 data-number="4.2.6" class="anchored" data-anchor-id="problem-formulation-as-a-mixed-interger-linear-programm"><span class="header-section-number">4.2.6</span> Problem formulation as a Mixed Interger Linear Programm</h3>
+<p><span class="math display">\[
+\begin{array}{lll}
+\min &amp; \sum_j c^f_j \cdot y_j + \sum_{ij} c_{ij}x_{ij} &amp;\\
+s.t. &amp; \sum_j x_{ij} = d_i &amp; \forall i \in C\\
+     &amp; x_{ij} \leq d_i y_j &amp; \forall i\in C, \forall j \in J\\
+     &amp; \sum_i x_{ij} \leq q_j y_j &amp; \forall j \in J \\
+     &amp; \sum_j y_j \leq k &amp; \\
+     &amp; x_{ij}\geq0 &amp; \\
+     &amp; y_j\in\{0,1\}&amp;
+\end{array}
+\]</span></p>
+</section>
+</section>
+<section id="implementation" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="implementation"><span class="header-section-number">4.3</span> Implementation</h2>
+<p>For our simulated annealing implementation we choosed a so called a combined simmulated annealing <span class="citation" data-cites="qin2012combined">(<a href="../references.html#ref-qin2012combined" role="doc-biblioref">Qin, Ni, and Shi 2012</a>)</span>, which means we have to layers:</p>
+<ol type="1">
+<li>an outer layer algorithm (OLSA), which optimizes the facility location decision</li>
+<li>an inner layer algorithm (ILSA), which optimizes the demand allocation decision based on the open facility decision given by the outer layer algorithm.</li>
+</ol>
+<p>and in each layer an simumalted annealing is used.</p>
+<p>But before we look at the implementation and apply it to some examples, lets briefly give you a brief overview:</p>
+<ol type="1">
+<li>Data Structures</li>
+<li>I/O and Tests</li>
+<li>Additonal functions e.g.&nbsp;to generate initial solutions</li>
+<li>Combined simmulated annealing implementation</li>
+<li>Solve examples</li>
+</ol>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Random</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearAlgebra</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLD2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># set seed for reporducibility</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">123</span>);</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">TaskLocalRNG</span>();</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="cflp-data-structure" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="cflp-data-structure"><span class="header-section-number">4.4</span> CFLP data structure</h2>
+<p>We define two data Data Structures constisting of</p>
+<ol type="1">
+<li><code>cflp_data</code> to hold the problem data and</li>
+<li><code>cflp_solution</code> to hold one solution, which does not necessarily need to</li>
+</ol>
+<p>be optimal.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"./SA_DataSturctures.jl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="io-and-tests-functions" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="io-and-tests-functions"><span class="header-section-number">4.5</span> I/O and tests functions</h2>
+<p>For simplicity of this showcase we wrote a function</p>
+<ol type="1">
+<li>to randomly generate data (<code>gen_data</code>)</li>
+<li>print the solution in a more human readable way (<code>print_solution</code>) and</li>
+<li>test the solution for feasibility (<code>test_cflp_solution</code>).</li>
+</ol>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"./IO.jl"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"./Tests.jl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>test_cflp_solution (generic function with 2 methods)</code></pre>
+</div>
+</div>
+</section>
+<section id="additional-functions" class="level2" data-number="4.6">
+<h2 data-number="4.6" class="anchored" data-anchor-id="additional-functions"><span class="header-section-number">4.6</span> Additional functions</h2>
+<ol type="1">
+<li>generate an initial solution</li>
+<li>generate a client to facility assigment based on an heuristic</li>
+<li>generate candidates for inner and outer layer simulated annealing</li>
+</ol>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"./SA_Algorithms.jl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>SA_client_facility_assignment (generic function with 5 methods)</code></pre>
+</div>
+</div>
+</section>
+<section id="combined-simmulated-annealing-implementation" class="level2" data-number="4.7">
+<h2 data-number="4.7" class="anchored" data-anchor-id="combined-simmulated-annealing-implementation"><span class="header-section-number">4.7</span> Combined simmulated annealing implementation</h2>
+<p>We will implement a so called a combined simmulated annealing <span class="citation" data-cites="qin2012combined">(<a href="../references.html#ref-qin2012combined" role="doc-biblioref">Qin, Ni, and Shi 2012</a>)</span>, which means we have to layers:</p>
+<ol type="1">
+<li>an outer layer algorithm (OLSA), which optimizes the facility location decision (see <code>SA_cflp</code>)</li>
+<li>an inner layer algorithm (ILSA), which optimizes the demand allocation decision based on the open facility decision given by the outer layer algorithm (see <code>SA_client_facility_assignment</code>).</li>
+</ol>
+<p>Maybe its valuable to note that from an user point of view, there is only a “simulate annealing function” <code>SA_cflp</code> and the ILSA simply means running a simulated annealing to find a good solution for assigning client demand to facilities based on a fixed descision on open facilities from the OLSA.</p>
+<section id="outer-layer-algorithm---open-facility-decision" class="level3" data-number="4.7.1">
+<h3 data-number="4.7.1" class="anchored" data-anchor-id="outer-layer-algorithm---open-facility-decision"><span class="header-section-number">4.7.1</span> Outer layer algorithm - open facility decision</h3>
+<p>In the outer layer algorithm we explore the search space (after starting from an initial solution) by swaping the status of a randomly choosen facility (i.e.&nbsp;<code>idx = rand(1:data.m)</code> below), e.g.&nbsp;we swap the status of the choosen facility from close to open and vice versa. This is done by the function <code>generate_candidate_facility</code> below.</p>
+<p>Afterwards we run the inner layer algorithm to explore the search space with respect to the descision on assigning client demand to open facility, which we explain in the next section.</p>
+<p>Of course other strategies migth be more useful, just to give two examples:</p>
+<ul>
+<li>if the number of facilities is small, we could simply to an lexicographic search.</li>
+<li>if the number of possible facilities <code>m</code> is large but the number of maximal open facilities <code>k</code> is small, one could swap a random number of facilities simultaneously or use a rolling window with variable lenght.</li>
+</ul>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">generate_candidate_facility</span>(data<span class="op">::</span><span class="dt">cflp_data</span>, solution<span class="op">::</span><span class="dt">cflp_solution</span>, k<span class="op">::</span><span class="dt">Int</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"""</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">    returns cflp_solution in which the decision on open facilities is randomly modified</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">    the allocation of client demand to facilities is done using the heuristic assignment</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># generate new candidate for open facilities by swaping the value at a random index</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    candidate <span class="op">=</span> <span class="fu">copy</span>(solution.open_facilities)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> <span class="fu">rand</span>(<span class="fl">1</span><span class="op">:</span>data.m)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    candidate[idx] <span class="op">=</span> !candidate[idx]</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    candidate_solution_heu <span class="op">=</span> <span class="fu">cflp_solution</span>(data, candidate, <span class="fu">heuristic_client_facility_assignment</span>(data, candidate))</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># swap an index if generated candidate is infeasible            </span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> !<span class="fu">test_cflp_solution</span>(data, candidate_solution_heu, k)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        idx <span class="op">=</span> <span class="fu">rand</span>(<span class="fl">1</span><span class="op">:</span>data.m)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        candidate[idx] <span class="op">=</span> !candidate[idx]</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        candidate_solution_heu <span class="op">=</span> <span class="fu">cflp_solution</span>(data, candidate, <span class="fu">heuristic_client_facility_assignment</span>(data, candidate))</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span>     </span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> candidate_solution_heu</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>generate_candidate_facility (generic function with 1 method)</code></pre>
+</div>
+</div>
+</section>
+<section id="inner-layer-algorithm---client-to-facility-assignment" class="level3" data-number="4.7.2">
+<h3 data-number="4.7.2" class="anchored" data-anchor-id="inner-layer-algorithm---client-to-facility-assignment"><span class="header-section-number">4.7.2</span> Inner layer algorithm - client to facility assignment</h3>
+<p>In the inner layer algorithm we explore the search space with respect to the assignment of client demand to facilities.</p>
+<p>Based on the decision on open facilities made by the outer layer algorithm the initial solution is given by an heuristic assignment, which simply said assigns to each client the cheapest available facility.</p>
+<p>From there we start shifting a random amount of client demand to a facility with free capacity:</p>
+<ol type="1">
+<li>find facility <span class="math inline">\(j_{free}\)</span> with free capacity</li>
+<li>choose a random client <span class="math inline">\(i_{rand}\)</span></li>
+<li>choose a random facility <span class="math inline">\(j_{rand}\)</span> which serves demand of client <span class="math inline">\(i_rand\)</span></li>
+<li>choose a random demand (which is neither greater than assigned client demand to <span class="math inline">\(j_{rand}\)</span> nor the free capacity of <span class="math inline">\(j_{free}\)</span></li>
+<li>move this demand from facility <span class="math inline">\(j_{rand}\)</span> to <span class="math inline">\(j_{free}\)</span></li>
+</ol>
+<p>This is done in the function <code>generate_candidate_assignment</code>.</p>
+<p>We note that this strategy in the current implementation can get stuck (see doc string of <code>generate_candidate_assignment</code>), which means the inner layer algorithm is running but is not exploring the search space. However this problem can be solved by checking the sufficient conditions first, before starting the inner layer algorithm. To keep the example simple we did not implemented this solution. Another option would be for example to swap a suitable demand between clients.</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">generate_candidate_assignment</span>(data<span class="op">::</span><span class="dt">cflp_data</span>, solution<span class="op">::</span><span class="dt">cflp_solution</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"""</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="st">    returns a cflp_solution where the open_facilities are equal to the input, but</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="st">    a random part of one assignment of a client demand to facilities is move to a facilitiy </span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="st">    with free capacity</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="st">    N.B. In the current implementation it is possible, that the assignment matrix does not change</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="st">    (this happens when j_free = j_rand, i.e. we take demand from the facilitiy but assign it back again)</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="st">    In particular the SA is not exploring the search space, as its stays at the solution until the descision on open facilities changes</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="st">    </span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="st">    In particular this happens when J = {j_rand}</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="st">    In particular this happend with random data when k has to be choosen close to number of facilities to fulfill feasibility</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="st">    In the next iteration we could implement a another decision, for example</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="st">    "that we simply swap a suitable demand between clients under the assumption that both have different facilities" </span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    assignment <span class="op">=</span> <span class="fu">copy</span>(solution.assignment)</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># determine free capacity as difference of available capacity minus assigned capacity</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    free_capacity <span class="op">=</span> [data.capacity[j] <span class="op">*</span> solution.open_facilities[j] for j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m]</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    free_capacity <span class="op">-=</span> [<span class="fu">sum</span>(solution.assignment[j,<span class="op">:</span>]) for j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m]</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># get random facility with free capacity</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    j_free <span class="op">=</span> <span class="fu">rand</span>([j for j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m if free_capacity[j]<span class="op">!=</span><span class="fl">0</span>])</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># move assigned capacity randomly to j_free</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">## but therefore we need a client and a facility and a random capacity to move first</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    i_rand <span class="op">=</span> <span class="fu">rand</span>([i for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.n])</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    J <span class="op">=</span> [j for j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m if solution.assignment[j, i_rand] <span class="op">!=</span> <span class="fl">0</span>]</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    j_rand <span class="op">=</span> <span class="fu">rand</span>(J) </span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    cap_move <span class="op">=</span> <span class="fu">rand</span>(<span class="fl">1</span><span class="op">:</span><span class="fu">min</span>(free_capacity[j_free], solution.assignment[j_rand,i_rand]))</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># move capacity</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>    assignment[j_free,i_rand] <span class="op">+=</span> cap_move</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    assignment[j_rand,i_rand] <span class="op">-=</span> cap_move</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">cflp_solution</span>(data, solution.open_facilities, assignment)</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>generate_candidate_assignment (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>We now know how to generate a new candidate assignemt with <code>generate_candidate_assignment</code>, so lets look at the implementation of the inner layer algorithm (<code>SA_client_facility_assignment</code>) next.</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">SA_client_facility_assignment</span>(data<span class="op">::</span><span class="dt">cflp_data</span>, solution<span class="op">::</span><span class="dt">cflp_solution</span>,</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>        start_temp<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">10.0</span>, end_temp<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">1.0</span>, alpha<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">0.5</span>, max_iter<span class="op">::</span><span class="dt">Int64 </span><span class="op">=</span> <span class="fl">5</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"""</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="st">    performs an simulated annealing to find an assignment of client demand to open facilities</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="st">    returns cflp_solution with local minimal costs</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># initial solution</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    current_solution <span class="op">=</span> solution</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    best_solution <span class="op">=</span> <span class="fu">cflp_solution</span>(data, solution.open_facilities, solution.assignment)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># iterate</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    temp <span class="op">=</span> start_temp</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> temp <span class="op">&gt;</span> end_temp</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>max_iter</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>            <span class="co"># generate new candidate assigning client demand to open facilities</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>            candidate_solution <span class="op">=</span> <span class="fu">generate_candidate_assignment</span>(data, current_solution)  </span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span>  candidate_solution.cost <span class="op">&lt;</span> best_solution.cost </span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>                best_solution <span class="op">=</span> <span class="fu">cflp_solution</span>(data, candidate_solution.open_facilities, </span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>                    candidate_solution.assignment)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">end</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> candidate_solution.cost <span class="op">&lt;</span> current_solution.cost</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>                current_solution <span class="op">=</span> candidate_solution</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>                acceptance_prob <span class="op">=</span> <span class="fu">exp</span>( (current_solution.cost <span class="op">-</span> candidate_solution.cost) <span class="op">/</span> temp )</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="fu">rand</span>() <span class="op">&lt;</span> acceptance_prob</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>                    current_solution <span class="op">=</span> candidate_solution</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>                <span class="cf">end</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">end</span>          </span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span>        </span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>        temp <span class="op">*=</span> alpha</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>  best_solution</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>SA_client_facility_assignment (generic function with 5 methods)</code></pre>
+</div>
+</div>
+<p>Now we have all ingredients for our outer layer algorithm <code>SA_cflp</code>:</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">SA_cflp</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>        data<span class="op">::</span><span class="dt">cflp_data</span>, k<span class="op">::</span><span class="dt">Int64</span>, start_temp<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">10.0</span>, end_temp<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">1.0</span>, alpha<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">0.5</span>, max_iter<span class="op">::</span><span class="dt">Int64 </span><span class="op">=</span> <span class="fl">100</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"""</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="st">    TBA</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># generate initial solution </span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    current_solution <span class="op">=</span> <span class="fu">generate_initial_solution</span>(data, k)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    best_solution <span class="op">=</span> current_solution</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># iterate</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    temp <span class="op">=</span> start_temp</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> temp <span class="op">&gt;</span> end_temp</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>max_iter</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>            <span class="co"># generate a new decision on open facilities</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>            candidate_solution_heu <span class="op">=</span> <span class="fu">generate_candidate_facility</span>(data, current_solution, k)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>            <span class="co"># run simulated annealing on the assignment</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>            candidate_solution <span class="op">=</span> <span class="fu">SA_client_facility_assignment</span>(data, candidate_solution_heu)</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span>  <span class="fu">test_cflp_solution</span>(data, candidate_solution, k) <span class="op">&amp;&amp;</span> candidate_solution.cost <span class="op">&lt;</span> best_solution.cost </span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>                best_solution <span class="op">=</span> candidate_solution</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">end</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> candidate_solution.cost <span class="op">&lt;</span> current_solution.cost</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>                current_solution <span class="op">=</span> candidate_solution</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>                acceptance_prob <span class="op">=</span> <span class="fu">exp</span>( (current_solution.cost <span class="op">-</span> candidate_solution.cost) <span class="op">/</span> temp )</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="fu">rand</span>() <span class="op">&lt;</span> acceptance_prob</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>                    current_solution <span class="op">=</span> candidate_solution</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>                <span class="cf">end</span></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>            <span class="cf">end</span></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>        temp <span class="op">*=</span> alpha</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> !<span class="fu">test_cflp_solution</span>(data, best_solution,k)</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>        <span class="fu">println</span>(<span class="st">"did not found a feasible solution"</span>)</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>  best_solution</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>SA_cflp (generic function with 5 methods)</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="solve-examples" class="level2" data-number="4.8">
+<h2 data-number="4.8" class="anchored" data-anchor-id="solve-examples"><span class="header-section-number">4.8</span> Solve examples</h2>
+<p>Lets apply our implementation to some examples.</p>
+<section id="a-simple-cflp" class="level3" data-number="4.8.1">
+<h3 data-number="4.8.1" class="anchored" data-anchor-id="a-simple-cflp"><span class="header-section-number">4.8.1</span> A simple CFLP</h3>
+<p>The following problem data for a CFLP is taken from <a href="https://scipbook.readthedocs.io/en/latest/flp.html">Mathematical Optimization: Solving Problems using SCIP and Python</a>.</p>
+<p>Its so simple that one can easily derive an optimal solution by hand and we recall that one optimal solution has a total cost of ~5370.0 and uses facilities [2, 3].</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>demand <span class="op">=</span> [<span class="fl">80</span>, <span class="fl">270</span>, <span class="fl">250</span>, <span class="fl">160</span>, <span class="fl">180</span>]</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>capacity <span class="op">=</span> [<span class="fl">500</span>,<span class="fl">500</span>,<span class="fl">500</span>]</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>cost_fix <span class="op">=</span> [<span class="fl">1000</span>.,<span class="fl">1000</span>.,<span class="fl">1000</span>.]</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>cost_var <span class="op">=</span> [<span class="fl">4</span>. <span class="fl">6</span>. <span class="fl">9</span>.; <span class="fl">5</span>. <span class="fl">4</span>. <span class="fl">7</span>.; <span class="fl">6</span>. <span class="fl">3</span>. <span class="fl">4</span>.; <span class="fl">8</span>. <span class="fl">5</span>. <span class="fl">3</span>.; <span class="fl">10</span>. <span class="fl">8</span>. <span class="fl">4</span>.]</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> <span class="fu">cflp_data</span>(cost_fix, cost_var, capacity, demand);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">2</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">SA_cflp</span>(data, k)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print_solution</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total cost are:5610.0
+Open facilities:[2, 3]
+Assignment:
+customer   1 gets       80.000000 from facility   2
+customer   2 gets      270.000000 from facility   2
+customer   3 gets      150.000000 from facility   2
+customer   3 gets      100.000000 from facility   3
+customer   4 gets      160.000000 from facility   3
+customer   5 gets      180.000000 from facility   3</code></pre>
+</div>
+</div>
+</section>
+<section id="example-2" class="level3" data-number="4.8.2">
+<h3 data-number="4.8.2" class="anchored" data-anchor-id="example-2"><span class="header-section-number">4.8.2</span> Example 2</h3>
+<p>The second example is larger and we may don’t want to solve by hand. We don’t go into details of the data and just remark, that it was randomly generated to test the implementation.</p>
+<p><em>We did not print all the assignment of customers to facilities</em> to increase readability , but if you are interested simply set <code>dont_print_all</code> to false.</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLD2</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> <span class="fu">load</span>(<span class="st">"../data/data.jld2"</span>)[<span class="st">"data"</span>]</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>dont_print_all <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> <span class="fu">cflp_data</span>(d[<span class="st">"cost_fix"</span>], d[<span class="st">"cost_var"</span>], d[<span class="st">"capacity"</span>], d[<span class="st">"demand"</span>])</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">9</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>example2 <span class="op">=</span> <span class="fu">SA_cflp</span>(data, k)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print_solution</span>(example2, dont_print_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total cost are:14278.269999999999
+Open facilities:[1, 3, 5, 6, 8, 9, 10, 11, 13]
+Assignment:
+customer   1 gets       18.000000 from facility   9
+customer   2 gets       21.000000 from facility  13
+customer   3 gets       12.000000 from facility  11
+customer   4 gets       14.000000 from facility   3
+customer   5 gets       18.000000 from facility  13</code></pre>
+</div>
+</div>
+<p>We recall the optimal solution of the MILP:</p>
+<pre><code>Total cost are:14277.130000000001
+Open facilities:[1, 3, 5, 6, 8, 9, 10, 11, 13]</code></pre>
+</section>
+<section id="example-3" class="level3" data-number="4.8.3">
+<h3 data-number="4.8.3" class="anchored" data-anchor-id="example-3"><span class="header-section-number">4.8.3</span> Example 3</h3>
+<p>We just showcase how to randomly generate data for a CFLP and solve the corresponding CFLP by our combined simulated annealing implementation.</p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> <span class="fu">gen_data</span>()</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> data.m <span class="op">-</span> <span class="fl">1</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">SA_cflp</span>(data, k)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print_solution</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total cost are:6084.43
+Open facilities:[2, 3, 4, 8]
+Assignment:
+customer   1 gets       28.000000 from facility   8
+customer   2 gets       15.000000 from facility   2
+customer   3 gets       25.000000 from facility   2
+customer   4 gets        7.000000 from facility   2
+customer   5 gets       24.000000 from facility   8
+customer   6 gets        5.000000 from facility   3
+customer   7 gets        6.000000 from facility   8
+customer   8 gets       21.000000 from facility   4
+customer   9 gets       23.000000 from facility   2
+customer  10 gets       23.000000 from facility   4
+customer  11 gets        4.000000 from facility   3
+customer  12 gets       26.000000 from facility   8
+customer  13 gets       14.000000 from facility   3
+customer  14 gets       13.000000 from facility   2
+customer  15 gets       28.000000 from facility   2</code></pre>
+</div>
+</div>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography" style="display: none">
+<div id="ref-qin2012combined" class="csl-entry" role="doc-biblioentry">
+Qin, Jin, Ling-lin Ni, and Feng Shi. 2012. <span>“Combined Simulated Annealing Algorithm for the Discrete Facility Location Problem.”</span> <em>The Scientific World Journal</em> 2012 (1): 576392.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../milp/01_milp_cflp.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Capacitated facility location problem solved by custom branching and selection rules</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../sa/03_sa_cflp_with_heuristics.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Facility Location Problem solved by Simulated Annealing and heuristics</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>
