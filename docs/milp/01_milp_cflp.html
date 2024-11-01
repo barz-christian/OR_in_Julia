@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>OR in Julia - 3&nbsp; Capacitated facility location problem solved by custom branching and selection rules</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../sa/02_sa_cflp.html" rel="next">
+<link href="../setup_and_test.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">OR in Julia</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/barz-christian/OR_in_Julia"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Capacitated facility location problem solved by custom branching and selection rules</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">OR in Julia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../setup_and_test.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Julia setup</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../milp/01_milp_cflp.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Capacitated facility location problem solved by custom branching and selection rules</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../sa/02_sa_cflp.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Capacitated Facility Location Problem solved by Simulated Annealing</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../sa/03_sa_cflp_with_heuristics.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Capacitated Facility Location Problem solved by Simulated Annealing and heuristics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#problem-statement---capacitated-facility-location-problem" id="toc-problem-statement---capacitated-facility-location-problem" class="nav-link active" data-scroll-target="#problem-statement---capacitated-facility-location-problem"> <span class="header-section-number">3.1</span> Problem statement - capacitated facility location problem</a></li>
+  <li><a href="#mathematical-model" id="toc-mathematical-model" class="nav-link" data-scroll-target="#mathematical-model"> <span class="header-section-number">3.2</span> Mathematical model</a>
+  <ul class="collapse">
+  <li><a href="#sets" id="toc-sets" class="nav-link" data-scroll-target="#sets"> <span class="header-section-number">3.2.1</span> Sets</a></li>
+  <li><a href="#parameter" id="toc-parameter" class="nav-link" data-scroll-target="#parameter"> <span class="header-section-number">3.2.2</span> Parameter</a></li>
+  <li><a href="#decision-variables" id="toc-decision-variables" class="nav-link" data-scroll-target="#decision-variables"> <span class="header-section-number">3.2.3</span> Decision variables</a></li>
+  <li><a href="#objective" id="toc-objective" class="nav-link" data-scroll-target="#objective"> <span class="header-section-number">3.2.4</span> Objective</a></li>
+  <li><a href="#constraints" id="toc-constraints" class="nav-link" data-scroll-target="#constraints"> <span class="header-section-number">3.2.5</span> Constraints</a></li>
+  </ul></li>
+  <li><a href="#a-simple-branching-and-selection-strategy" id="toc-a-simple-branching-and-selection-strategy" class="nav-link" data-scroll-target="#a-simple-branching-and-selection-strategy"> <span class="header-section-number">3.3</span> A simple branching and selection strategy</a>
+  <ul class="collapse">
+  <li><a href="#remarks-on-branching-and-selection" id="toc-remarks-on-branching-and-selection" class="nav-link" data-scroll-target="#remarks-on-branching-and-selection"> <span class="header-section-number">3.3.1</span> Remarks on branching and selection</a></li>
+  </ul></li>
+  <li><a href="#julia-implementation" id="toc-julia-implementation" class="nav-link" data-scroll-target="#julia-implementation"> <span class="header-section-number">3.4</span> Julia implementation</a>
+  <ul class="collapse">
+  <li><a href="#cflp-data-structure" id="toc-cflp-data-structure" class="nav-link" data-scroll-target="#cflp-data-structure"> <span class="header-section-number">3.4.1</span> CFLP data structure</a></li>
+  <li><a href="#io" id="toc-io" class="nav-link" data-scroll-target="#io"> <span class="header-section-number">3.4.2</span> IO</a></li>
+  </ul></li>
+  <li><a href="#milp-model-implementation-with-solver-dependent-callbacks" id="toc-milp-model-implementation-with-solver-dependent-callbacks" class="nav-link" data-scroll-target="#milp-model-implementation-with-solver-dependent-callbacks"> <span class="header-section-number">3.5</span> MILP model implementation with solver dependent callbacks</a></li>
+  <li><a href="#solve-a-simple-cflp" id="toc-solve-a-simple-cflp" class="nav-link" data-scroll-target="#solve-a-simple-cflp"> <span class="header-section-number">3.6</span> Solve a simple CFLP</a></li>
+  <li><a href="#a-more-sophisticated-cflp" id="toc-a-more-sophisticated-cflp" class="nav-link" data-scroll-target="#a-more-sophisticated-cflp"> <span class="header-section-number">3.7</span> A more sophisticated CFLP</a></li>
+  <li><a href="#remarks-on-code-improvements" id="toc-remarks-on-code-improvements" class="nav-link" data-scroll-target="#remarks-on-code-improvements"> <span class="header-section-number">3.8</span> Remarks on code improvements</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Capacitated facility location problem solved by custom branching and selection rules</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>We show how to solve a capacitated facility location problem (CFLP) in Julia using a MILP-Solver and how to use solver dependent callbacks to implement a custom branching and selection rule for GLPK.</p>
+<p>In order to keep our example simple we choosed a classical branching rule - namely “branch on the most fractional variable” - which is often part of a MILP-Solver-implementation.</p>
+<section id="problem-statement---capacitated-facility-location-problem" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="problem-statement---capacitated-facility-location-problem"><span class="header-section-number">3.1</span> Problem statement - capacitated facility location problem</h2>
+<p>A company must select a subset of potential facility locations to minimize total cost associated with opening facilities and servicing customers. Each costumer has a specific demand and each facility has a fixed opening costs, a specific capacity and service costs based on the distance to customers.</p>
+</section>
+<section id="mathematical-model" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="mathematical-model"><span class="header-section-number">3.2</span> Mathematical model</h2>
+<p>First we list the the given information before we write down the model in a more mathematical way</p>
+<section id="sets" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1" class="anchored" data-anchor-id="sets"><span class="header-section-number">3.2.1</span> Sets</h3>
+<ul>
+<li><span class="math inline">\(C=\{1,\ldots,n\}\)</span> of clients</li>
+<li><span class="math inline">\(J=\{1,\ldots,m\}\)</span> of potential facilities</li>
+</ul>
+</section>
+<section id="parameter" class="level3" data-number="3.2.2">
+<h3 data-number="3.2.2" class="anchored" data-anchor-id="parameter"><span class="header-section-number">3.2.2</span> Parameter</h3>
+<ul>
+<li><span class="math inline">\(c_j^f\)</span> fixed costs for opening facility <span class="math inline">\(j\)</span></li>
+<li><span class="math inline">\(c_{ij}^v\)</span> variable costs for transporting goods from facility <span class="math inline">\(j\)</span> to client <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\(d_i\)</span> demand of client <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\(q_j\)</span> facility capacity</li>
+</ul>
+</section>
+<section id="decision-variables" class="level3" data-number="3.2.3">
+<h3 data-number="3.2.3" class="anchored" data-anchor-id="decision-variables"><span class="header-section-number">3.2.3</span> Decision variables</h3>
+<ul>
+<li><span class="math inline">\(y_i\)</span>, binary, 1 iff facility <span class="math inline">\(j\)</span> is used</li>
+<li><span class="math inline">\(x_{ij}\)</span>, real, demand of client <span class="math inline">\(i\)</span> which is served by facility <span class="math inline">\(j\)</span></li>
+</ul>
+</section>
+<section id="objective" class="level3" data-number="3.2.4">
+<h3 data-number="3.2.4" class="anchored" data-anchor-id="objective"><span class="header-section-number">3.2.4</span> Objective</h3>
+<p>Minimize the sum of fix and variable costs:</p>
+<p><span class="math display">\[
+\min \sum_j c^f_j y_j + \sum_{ij} c_{ij}^v x_{ij}
+\]</span></p>
+</section>
+<section id="constraints" class="level3" data-number="3.2.5">
+<h3 data-number="3.2.5" class="anchored" data-anchor-id="constraints"><span class="header-section-number">3.2.5</span> Constraints</h3>
+<ul>
+<li>(c1) Each client’s demand is served:</li>
+</ul>
+<p><span class="math display">\[
+\sum_j x_{ij} = d_i, \; \forall i \in C
+\]</span></p>
+<ul>
+<li>(c2) A facility can only serve a client if its open:</li>
+</ul>
+<p><span class="math display">\[
+x_{ij} \leq d_i y_j, \forall i\in C, \forall j \in J
+\]</span></p>
+<ul>
+<li>(c3) Capacity constraint</li>
+</ul>
+<p><span class="math display">\[
+\sum_i x_{ij} \leq q_j y_j, \forall j \in J
+\]</span></p>
+<section id="milp-formulation" class="level4" data-number="3.2.5.1">
+<h4 data-number="3.2.5.1" class="anchored" data-anchor-id="milp-formulation"><span class="header-section-number">3.2.5.1</span> MILP Formulation</h4>
+<p><span class="math display">\[
+\begin{array}{lll}
+\min &amp; \sum_j c_j^f\cdot y_j + \sum_{ij} c_{ij}^v \cdot x_{ij} &amp;\\
+s.t. &amp; \sum_j x_{ij} = d_i, &amp; \forall i \in C \\
+     &amp; x_{ij} \leq d_i y_j, &amp; \forall i \in C, \forall j \in J \\
+     &amp; \sum_i x_{ij} \leq q_j y_j &amp; \forall j\in J \\
+     &amp; y_j \in \{ 0,1 \}, &amp; \forall j\in J\\
+     &amp; x_{ij} \in [0,d_i], &amp; \forall i\in C, \forall j\in J
+\end{array}
+\]</span></p>
+</section>
+</section>
+</section>
+<section id="a-simple-branching-and-selection-strategy" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="a-simple-branching-and-selection-strategy"><span class="header-section-number">3.3</span> A simple branching and selection strategy</h2>
+<p>For the simplicity of the example we implement the following branching/selection strategy: 1. branch on the most fractional variable</p>
+<p><span class="math display">\[\arg\max \{|y_j - 0.5| \forall j \in J\}\]</span></p>
+<ol start="3" type="1">
+<li>and select
+<ol type="1">
+<li>if <span class="math inline">\(y_j - 0.5 &lt; 0\)</span>: down-branch and</li>
+<li>if <span class="math inline">\(y_j - 0.5 &gt; 0\)</span>: up-branch.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></li>
+</ol></li>
+</ol>
+<section id="remarks-on-branching-and-selection" class="level3" data-number="3.3.1">
+<h3 data-number="3.3.1" class="anchored" data-anchor-id="remarks-on-branching-and-selection"><span class="header-section-number">3.3.1</span> Remarks on branching and selection</h3>
+<ol type="1">
+<li>We remark that using the most fractional value as branching criteria is a common technique, which is also often implemented in solver. But we precisely choosed the criteria to on the one hand keep the example simple and one the other hand be able to test our implementation against existing ones.</li>
+<li>There is no deeper reasoning behind the selection rule and we have choosen it just to keep the example simple.</li>
+<li>In order to modify the example, you need to know the options for GLPK. They are comprehensively documented in the <a href="https://github.com/jump-dev/GLPK.jl/files/11143880/glpk.pdf">PDF documentation</a>.</li>
+</ol>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JuMP</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">GLPK</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Random</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">MathOptInterface </span>as MOI</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLD2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="julia-implementation" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="julia-implementation"><span class="header-section-number">3.4</span> Julia implementation</h2>
+<p>Before we look at an implemention of above model using Jump, let me briefly give you an overview on the full implementation</p>
+<ol type="1">
+<li>A data structure holding the problem data</li>
+<li>a function to generate random problem data (for example to test the code)</li>
+<li>a simple output-function</li>
+<li>a function implementing the MILP (incl.&nbsp;custom branch and selection strategy)</li>
+<li>we modified the MILP to see when our custom branching and selection strategy was used.</li>
+</ol>
+<section id="cflp-data-structure" class="level3" data-number="3.4.1">
+<h3 data-number="3.4.1" class="anchored" data-anchor-id="cflp-data-structure"><span class="header-section-number">3.4.1</span> CFLP data structure</h3>
+<p>We defined a data Data Structures <code>cflp_data</code> to hold the problem data.</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"SA_DataSturctures.jl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="io" class="level3" data-number="3.4.2">
+<h3 data-number="3.4.2" class="anchored" data-anchor-id="io"><span class="header-section-number">3.4.2</span> IO</h3>
+<p>We wrote two functions to simply generate random problem data and to visualize the found solution.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"IO.jl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>print_solution (generic function with 2 methods)</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="milp-model-implementation-with-solver-dependent-callbacks" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="milp-model-implementation-with-solver-dependent-callbacks"><span class="header-section-number">3.5</span> MILP model implementation with solver dependent callbacks</h2>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">solve_cflp</span>(data<span class="op">::</span><span class="dt">cflp_data</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"""</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">    solves uncapacitated facility location problem</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># instanciate model and set optimizer</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> <span class="fu">Model</span>()</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set_optimizer</span>(model, GLPK.Optimizer)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># vars</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@variable</span>(model, y[<span class="fl">1</span><span class="op">:</span>data.m], Bin) <span class="co">#open facilities</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@variable</span>(model, x[<span class="fl">1</span><span class="op">:</span>data.n, <span class="fl">1</span><span class="op">:</span>data.m], lower_bound <span class="op">=</span> <span class="fl">0</span>) <span class="co"># demand of client i served by facility j</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># objective</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    fix_cost <span class="op">=</span> <span class="pp">@expression</span>(model, <span class="fu">sum</span>( data.cost_fix[j] <span class="op">*</span> y[j] <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m))</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    var_cost <span class="op">=</span> <span class="pp">@expression</span>(model, <span class="fu">sum</span>( data.cost_var[i,j] <span class="op">*</span> x[i,j] <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.n <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m))</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@objective</span>(model, Min, fix_cost <span class="op">+</span> var_cost)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># constraints</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">## fulfill demand</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@constraint</span>(model, c1[i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.n], <span class="fu">sum</span>(x[i,j] <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m) <span class="op">==</span> data.demand[i])</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">## clients are served by open facility only</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@constraint</span>(model, c2[i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.n, j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m], x[i,j] <span class="op">&lt;=</span> data.demand[i] <span class="op">*</span> y[j])</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">## obey facility capacity</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@constraint</span>(model, c3[j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.m], <span class="fu">sum</span>(x[i,j] <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>data.n) <span class="op">&lt;=</span> data.capacity[j] <span class="op">*</span> y[j])</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span> <span class="fu">callback_function</span>(cb_data)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># determine reason for calling the callback routine</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        reason <span class="op">=</span> GLPK.<span class="fu">glp_ios_reason</span>(cb_data.tree)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ignore reason unless request for branching</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> reason <span class="op">!=</span> GLPK.GLP_IBRANCH</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>        y_vals <span class="op">=</span> <span class="fu">callback_value</span>.(<span class="fu">Ref</span>(cb_data), y)</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>        <span class="co"># determinine most fractional value</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        most_frac <span class="op">=</span> <span class="fu">findmin</span>([<span class="fu">abs</span>(y_j <span class="op">-</span> <span class="fl">0.5</span>) for y_j <span class="kw">in</span> y_vals])[<span class="fl">2</span>]</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># check if we can branch upon specifed variable</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>        can_branch <span class="op">=</span> GLPK.<span class="fu">glp_ios_can_branch</span>(cb_data.tree, most_frac)</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> can_branch <span class="op">!=</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> (y_vals[most_frac] <span class="op">-</span> <span class="fl">0.5</span> <span class="op">&lt;</span> <span class="fl">0.0</span>)</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> GLPK.<span class="fu">glp_ios_branch_upon</span>(cb_data.tree, most_frac, GLPK.GLP_DN_BRNCH)</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elseif</span> can_branch <span class="op">!=</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> (y_vals[most_frac] <span class="op">-</span> <span class="fl">0.5</span> <span class="op">&gt;</span> <span class="fl">0.0</span>)</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> GLPK.<span class="fu">glp_ios_branch_upon</span>(cb_data.tree, most_frac, GLPK.GLP_UP_BRNCH)</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>            <span class="co"># leave decision to solver</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span>       </span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    MOI.<span class="fu">set</span>(model, GLPK.<span class="fu">CallbackFunction</span>(), callback_function)</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">optimize!</span>(model)</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    <span class="co"># test before return solution</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> !<span class="fu">is_solved_and_feasible</span>(model)</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fu">error</span>(<span class="st">"Solver did not found an optimal solution"</span>)</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> <span class="fu">Dict</span>(</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>        <span class="st">"objective value"</span> <span class="op">=&gt;</span> <span class="fu">objective_value</span>(model),</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>        <span class="st">"facilities"</span> <span class="op">=&gt;</span> <span class="fu">value</span>.(y),</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>        <span class="st">"assignment"</span> <span class="op">=&gt;</span> <span class="fu">value</span>.(x)</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>solve_cflp (generic function with 1 method)</code></pre>
+</div>
+</div>
+</section>
+<section id="solve-a-simple-cflp" class="level2" data-number="3.6">
+<h2 data-number="3.6" class="anchored" data-anchor-id="solve-a-simple-cflp"><span class="header-section-number">3.6</span> Solve a simple CFLP</h2>
+<p>The following problem data for a CFLP is taken from <a href="https://scipbook.readthedocs.io/en/latest/flp.html">Mathematical Optimization: Solving Problems using SCIP and Python</a>.</p>
+<p>Its so simple that one can easily derive an optimal solution by hand. Moreover its a good practice to test our implementation on well known instances.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use simple example data from SCIP docs</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> [<span class="fl">80</span>, <span class="fl">270</span>, <span class="fl">250</span>, <span class="fl">160</span>, <span class="fl">180</span>];</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>c_f <span class="op">=</span> [<span class="fl">1000</span>.,<span class="fl">1000</span>.,<span class="fl">1000</span>.];</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>c_v <span class="op">=</span> [<span class="fl">9</span>. <span class="fl">6</span>. <span class="fl">4</span>.; <span class="fl">5</span>. <span class="fl">4</span>. <span class="fl">7</span>.; <span class="fl">6</span>. <span class="fl">3</span>. <span class="fl">4</span>.; <span class="fl">8</span>. <span class="fl">5</span>. <span class="fl">3</span>.; <span class="fl">10</span>. <span class="fl">8</span>. <span class="fl">4</span>.];</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>q <span class="op">=</span> [<span class="fl">500</span>,<span class="fl">500</span>,<span class="fl">500</span>]</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> <span class="fu">cflp_data</span>(c_f,c_v,q,d)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>cflp_data([1000.0, 1000.0, 1000.0], [9.0 6.0 4.0; 5.0 4.0 7.0; … ; 8.0 5.0 3.0; 10.0 8.0 4.0], [500, 500, 500], [80, 270, 250, 160, 180], 3, 5, 87.0, 11.0)</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>solution <span class="op">=</span> <span class="fu">solve_cflp</span>(data)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print_solution</span>(solution)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total cost are:5370.000000000006
+Open facilities:[2, 3]
+Assignment:
+customer   1 gets       80.000000 from facility   3
+customer   2 gets      270.000000 from facility   2
+customer   3 gets      230.000000 from facility   2
+customer   3 gets       20.000000 from facility   3
+customer   4 gets      160.000000 from facility   3
+customer   5 gets      180.000000 from facility   3</code></pre>
+</div>
+</div>
+</section>
+<section id="a-more-sophisticated-cflp" class="level2" data-number="3.7">
+<h2 data-number="3.7" class="anchored" data-anchor-id="a-more-sophisticated-cflp"><span class="header-section-number">3.7</span> A more sophisticated CFLP</h2>
+<p>Unfortunately the above example was so simple, that GLPK did not used our custom branching and selection rule. Hence we look at a more sophisticated example next, which we found while testing our implementation on randomly generated data.</p>
+<p>To visualize that our custom branching and selection rule was applied we added some <code>println</code> commands in our callback function:</p>
+<pre><code>        if can_branch != 0 &amp;&amp; (y_vals[most_frac] - 0.5 &lt; 0.0)
+            println("used down-branch")
+            return GLPK.glp_ios_branch_upon(cb_data.tree, most_frac, GLPK.GLP_DN_BRNCH)
+        elseif can_branch != 0 &amp;&amp; (y_vals[most_frac] - 0.5 &gt; 0.0)
+            println("used up-branch")
+            return GLPK.glp_ios_branch_upon(cb_data.tree, most_frac, GLPK.GLP_UP_BRNCH)</code></pre>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">solve_cflp_println</span>(data<span class="op">::</span><span class="dt">cflp_data</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"""</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="st">    solves uncapacitated facility location problem</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># derive parameter from data, i.e. </span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="fu">length</span>(data.demand) <span class="co"># number of clients n </span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> <span class="fu">length</span>(data.cost_fix) <span class="co"># number of facilities m</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># instanciate model and set optimizer</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> <span class="fu">Model</span>()</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set_optimizer</span>(model, GLPK.Optimizer)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># vars</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@variable</span>(model, y[<span class="fl">1</span><span class="op">:</span>m], Bin) <span class="co">#open facilities</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@variable</span>(model, x[<span class="fl">1</span><span class="op">:</span>n, <span class="fl">1</span><span class="op">:</span>m], lower_bound <span class="op">=</span> <span class="fl">0</span>) <span class="co"># demand of client i served by facility j</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># objective</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    fix_cost <span class="op">=</span> <span class="pp">@expression</span>(model, <span class="fu">sum</span>( data.cost_fix[j] <span class="op">*</span> y[j] <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>m))</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    var_cost <span class="op">=</span> <span class="pp">@expression</span>(model, <span class="fu">sum</span>( data.cost_var[i,j] <span class="op">*</span> x[i,j] <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>m))</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@objective</span>(model, Min, fix_cost <span class="op">+</span> var_cost)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># constraints</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">## fulfill demand</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@constraint</span>(model, c1[i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n], <span class="fu">sum</span>(x[i,j] <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>m) <span class="op">==</span> data.demand[i])</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">## clients are served by open facility only</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@constraint</span>(model, c2[i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n, j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>m], x[i,j] <span class="op">&lt;=</span> data.demand[i] <span class="op">*</span> y[j])</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">## obey facility capacity</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@constraint</span>(model, c3[j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>m], <span class="fu">sum</span>(x[i,j] <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n) <span class="op">&lt;=</span> data.capacity[j] <span class="op">*</span> y[j])</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span> <span class="fu">callback_function</span>(cb_data)</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>        <span class="co"># determine reason for calling the callback routine</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>        reason <span class="op">=</span> GLPK.<span class="fu">glp_ios_reason</span>(cb_data.tree)</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ignore reason unless request for branching</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> reason <span class="op">!=</span> GLPK.GLP_IBRANCH</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>        y_vals <span class="op">=</span> <span class="fu">callback_value</span>.(<span class="fu">Ref</span>(cb_data), y)</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>        <span class="co"># determinine most fractional value</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>        most_frac <span class="op">=</span> <span class="fu">findmin</span>([<span class="fu">abs</span>(y_j <span class="op">-</span> <span class="fl">0.5</span>) for y_j <span class="kw">in</span> y_vals])[<span class="fl">2</span>]</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># check if we can branch upon specifed variable</span></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>        can_branch <span class="op">=</span> GLPK.<span class="fu">glp_ios_can_branch</span>(cb_data.tree, most_frac)</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> can_branch <span class="op">!=</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> (y_vals[most_frac] <span class="op">-</span> <span class="fl">0.5</span> <span class="op">&lt;</span> <span class="fl">0.0</span>)</span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>            <span class="fu">println</span>(<span class="st">"used down-branch"</span>)</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> GLPK.<span class="fu">glp_ios_branch_upon</span>(cb_data.tree, most_frac, GLPK.GLP_DN_BRNCH)</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elseif</span> can_branch <span class="op">!=</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> (y_vals[most_frac] <span class="op">-</span> <span class="fl">0.5</span> <span class="op">&gt;</span> <span class="fl">0.0</span>)</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>            <span class="fu">println</span>(<span class="st">"used up-branch"</span>)</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> GLPK.<span class="fu">glp_ios_branch_upon</span>(cb_data.tree, most_frac, GLPK.GLP_UP_BRNCH)</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>            <span class="co"># leave decision to solver</span></span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span></span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span>       </span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>    MOI.<span class="fu">set</span>(model, GLPK.<span class="fu">CallbackFunction</span>(), callback_function)</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">optimize!</span>(model)</span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># test before return solution</span></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> !<span class="fu">is_solved_and_feasible</span>(model)</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fu">error</span>(<span class="st">"Solver did not found an optimal solution"</span>)</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> <span class="fu">Dict</span>(</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>        <span class="st">"objective value"</span> <span class="op">=&gt;</span> <span class="fu">objective_value</span>(model),</span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>        <span class="st">"facilities"</span> <span class="op">=&gt;</span> <span class="fu">value</span>.(y),</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>        <span class="st">"assignment"</span> <span class="op">=&gt;</span> <span class="fu">value</span>.(x)</span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>solve_cflp_println (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>For simplicity we just print the first 5 customer to facility allocations.</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> <span class="fu">load</span>(<span class="st">"../data/data.jld2"</span>)[<span class="st">"data"</span>]</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>rng_data <span class="op">=</span> <span class="fu">cflp_data</span>(d[<span class="st">"cost_fix"</span>], d[<span class="st">"cost_var"</span>], d[<span class="st">"capacity"</span>], d[<span class="st">"demand"</span>])</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>solution <span class="op">=</span> <span class="fu">solve_cflp_println</span>(rng_data)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print_solution</span>(solution, <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>used up-branch
+used up-branch
+used up-branch
+used down-branch
+used down-branch
+used up-branch
+Total cost are:14277.130000000001
+Open facilities:[1, 3, 5, 6, 8, 9, 10, 11, 13]
+Assignment:
+customer   1 gets       18.000000 from facility   9
+customer   2 gets       21.000000 from facility  13
+customer   3 gets       12.000000 from facility  11
+customer   4 gets       14.000000 from facility   3
+customer   5 gets       18.000000 from facility  13</code></pre>
+</div>
+</div>
+</section>
+<section id="remarks-on-code-improvements" class="level2" data-number="3.8">
+<h2 data-number="3.8" class="anchored" data-anchor-id="remarks-on-code-improvements"><span class="header-section-number">3.8</span> Remarks on code improvements</h2>
+<p>We like to refer to two sources <a href="https://jump.dev/JuMP.jl/stable/tutorials/getting_started/performance_tips/">to improve the performance</a> and <a href="https://jump.dev/JuMP.jl/stable/tutorials/getting_started/design_patterns_for_larger_models/">to improve design the design for larger models</a>.</p>
+<p>In particular it would be benefitial to create a module in the long run, but as we wanted to show how to implement solver dependet callbacks in Julia, we decided not to do it.</p>
+
+
+</section>
+<section class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1" role="doc-endnote"><p>for the precise definition of up- and down-branch see section 5.2.9 in the <a href="https://github.com/jump-dev/GLPK.jl/files/11143880/glpk.pdf">GLPK documentation</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../setup_and_test.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Julia setup</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../sa/02_sa_cflp.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Capacitated Facility Location Problem solved by Simulated Annealing</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>
