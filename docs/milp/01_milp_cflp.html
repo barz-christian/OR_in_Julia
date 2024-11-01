@@ -190,7 +190,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../sa/03_sa_cflp_with_heuristics.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Facility Location Problem solved by Simulated Annealing and heuristics</span></a>
+  <a href="../sa/03_sa_cflp_with_heuristics.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Capacitated Facility Location Problem solved by Simulated Annealing and heuristics</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -571,7 +571,7 @@ customer   5 gets      180.000000 from facility   3</code></pre>
 </div>
 </div>
 <p>For simplicity we just print the first 5 customer to facility allocations.</p>
-<div class="cell" data-execution_count="11">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> <span class="fu">load</span>(<span class="st">"../data/data.jld2"</span>)[<span class="st">"data"</span>]</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>rng_data <span class="op">=</span> <span class="fu">cflp_data</span>(d[<span class="st">"cost_fix"</span>], d[<span class="st">"cost_var"</span>], d[<span class="st">"capacity"</span>], d[<span class="st">"demand"</span>])</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>solution <span class="op">=</span> <span class="fu">solve_cflp_println</span>(rng_data)</span>

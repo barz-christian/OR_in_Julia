@@ -207,3 +207,46 @@ function SA_client_facility_assignment(data::cflp_data, solution::cflp_solution,
     return  best_solution
     
 end
+
+function SA_cflp(
+        data::cflp_data, k::Int64, start_temp::Float64 = 10.0, end_temp::Float64 = 1.0, alpha::Float64 = 0.5, max_iter::Int64 = 100)
+    """
+    TBA
+    """
+    # generate initial solution 
+    current_solution = generate_initial_solution(data, k)
+    best_solution = current_solution
+
+    # iterate
+    temp = start_temp
+
+    while temp > end_temp
+        for _ in 1:max_iter
+            # generate a new decision on open facilities
+            candidate_solution_heu = generate_candidate_facility(data, current_solution, k)
+            
+            # run simulated annealing on the assignment
+            candidate_solution = SA_client_facility_assignment(data, candidate_solution_heu)
+
+            if  test_cflp_solution(data, candidate_solution, k) && candidate_solution.cost < best_solution.cost 
+                best_solution = candidate_solution
+            end
+
+            if candidate_solution.cost < current_solution.cost
+                current_solution = candidate_solution
+            else
+                acceptance_prob = exp( (current_solution.cost - candidate_solution.cost) / temp )
+                if rand() < acceptance_prob
+                    current_solution = candidate_solution
+                end
+            end
+        end
+        temp *= alpha
+    end
+
+    if !test_cflp_solution(data, best_solution,k)
+        println("did not found a feasible solution")
+    end
+    
+    return  best_solution
+end
